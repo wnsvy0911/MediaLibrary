@@ -6,87 +6,74 @@ namespace MediaLibrary
 {
     class Program
     {
-        // create static instance of Logger
         private static NLog.Logger logger = NLogBuilder.ConfigureNLog(Directory.GetCurrentDirectory() + "\\nlog.config").GetCurrentClassLogger();
         static void Main(string[] args)
         {
 
+            string movieFilePath = Directory.GetCurrentDirectory() + "\\movies.csv";
+
             logger.Info("Program started");
 
-            // Movie movie = new Movie
-            // {
-            //     mediaId = 123,
-            //     title = "Greatest Movie Ever, The (2020)",
-            //     director = "Jeff Grissom",
-            //     // timespan (hours, minutes, seconds)
-            //     runningTime = new TimeSpan(2, 21, 23),
-            //     genres = { "Comedy", "Romance" }
-            // };
+            MovieFile movieFile = new MovieFile(movieFilePath);
 
-            // Console.WriteLine(movie.Display());
-
-            // Album album = new Album
-            // {
-            //     mediaId = 321,
-            //     title = "Greatest Album Ever, The (2020)",
-            //     artist = "Jeff's Awesome Band",
-            //     recordLabel = "Universal Music Group",
-            //     genres = { "Rock" }
-            // };
-            // Console.WriteLine(album.Display());
-
-            // Book book = new Book
-            // {
-            //     mediaId = 111,
-            //     title = "Super Cool Book",
-            //     author = "Jeff Grissom",
-            //     pageCount = 101,
-            //     publisher = "",
-            //     genres = { "Suspense", "Mystery" }
-            // };
-            // Console.WriteLine(book.Display());          
-
-            //  string scrubbedFile = FileScrubber.ScrubMovies("movies.csv");
-            //  logger.Info(scrubbedFile);
-
-            logger.Info("Movie Manager loaded.");
-            MovieFile manager = new MovieFile("movies.scrubbed.csv");
-
-            try
+            string choice = "";
+            do
             {
-                
-                Boolean done = false;
+                // display choices to user
+                Console.WriteLine("1) Add Movie");
+                Console.WriteLine("2) Display All Movies");
+                Console.WriteLine("3) Find Movie");
+                Console.WriteLine("Enter to quit");
+                // input selection
+                choice = Console.ReadLine();
+                logger.Info("User choice: {Choice}", choice);
 
-                while(!done) {
-                    Console.WriteLine("\nWhat would you like to do?");
-                    Console.WriteLine("1 - Add New Movie");
-                    Console.WriteLine("2 - Dispaly All Movies");
-                    Console.WriteLine("3 - Find Movie");
-                    Console.WriteLine("Q - Quit Program");
-
-                    string choice = Console.ReadLine();
-                    logger.Info("Users choice = " + choice);
-
-                    if(choice == "1") {
-                        manager.userAddMovie();
-                    } else if (choice == "2") {
-                        manager.printMovies();
-                    } else if (choice == "3"){
-                        manager.findMovies();
-                        logger.Info("Find Movies");
-                    } else if (choice == "Q" || choice == "q") {
-                        done = true;
-                    } else {
-                        Console.WriteLine("Not a valid choice.");
-                    };
+                if (choice == "1")
+                {
+                    // Add movie
+                    Movie movie = new Movie();
+                    // ask user to input movie title
+                    Console.WriteLine("Enter movie title");
+                    // input title
+                    movie.title = Console.ReadLine();
+                    // verify title is unique
+                    if (movieFile.isUniqueTitle(movie.title)){
+                        // input genres
+                        string input;
+                        do
+                        {
+                            // ask user to enter genre
+                            Console.WriteLine("Enter genre (or done to quit)");
+                            // input genre
+                            input = Console.ReadLine();
+                            // if user enters "done"
+                            // or does not enter a genre do not add it to list
+                            if (input != "done" && input.Length > 0)
+                            {
+                                movie.genres.Add(input);
+                            }
+                        } while (input != "done");
+                        // specify if no genres are entered
+                        if (movie.genres.Count == 0)
+                        {
+                            movie.genres.Add("(no genres listed)");
+                        }
+                        // add movie
+                        movieFile.AddMovie(movie);
+                    }
+                } else if (choice == "2")
+                {
+                    // Display All Movies
+                    foreach(Movie m in movieFile.Movies)
+                    {
+                        Console.WriteLine(m.Display());
+                    }
+                } else if (choice == "3") {
+                    Console.WriteLine("Please Enter Search Criteria.");
+                    movieFile.FindMovies(Console.ReadLine());
                 }
-                logger.Info("Program Quitting");
+            } while (choice == "1" || choice == "2" || choice == "3");
 
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex.Message);
-            }
             logger.Info("Program ended");
         }
     }
